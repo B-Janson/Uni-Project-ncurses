@@ -20,19 +20,18 @@
 bool game_over = false; /* Set this to true when game is over */
 bool update_screen = true; /* Set to false to prevent screen update. */
 
-char * hero_image =
-/**/	"H   H"
-/**/	"H   H"
-/**/	"HHHHH"
-/**/	"H   H"
-/**/	"H   H";
+char * ship_image =
+/**/	"   |    "
+/**/	"  /o\\  "
+/**/	"|/___\\|";
 
-char * zombie_image =
-/**/	"ZZZZZ"
-/**/	"   Z "
-/**/	"  Z  "
-/**/	" Z   "
-/**/	"ZZZZZ";
+char * diamond_image =
+/**/	"  C  "
+/**/	" CCC "
+/**/	"CCCCC"
+/**/	"CCCCC"
+/**/	" CCC "
+/**/	"  C  ";
 
 char * msg_image =
 /**/	"Goodbye and thank-you for playing ZombieDash Jr."
@@ -40,16 +39,15 @@ char * msg_image =
 
 char border_character = '#';
 
-// // (c) Declare a sprite_id called hero.
-// sprite_id hero;
+int lives;
+int score;
+int timePlayed;
 
-// // (m) Declare a sprite_id called zombie.
-// sprite_id zombie;
+sprite_id ship;
+
+sprite_id diamond;
 
 void draw_rectangle(int x, int y, int width, int height, char character) {
-	// int height = screen_height();
-	// int width = screen_width();
-
 	int left = x;
 	int right = x + width - 1;
 	int top = y;
@@ -117,6 +115,14 @@ void draw_help_dialog(void) {
 
 void draw_border(void) {
 	draw_rectangle(0, 0, screen_width(), screen_height(), border_character);
+	draw_line(0, 2, screen_width() - 1, 2, border_character);
+
+	int middle = screen_width()/2;
+	draw_formatted(2, 1, "Lives = %i", lives);
+
+	draw_formatted(middle, 1, "# Score = %i", score);
+
+	draw_formatted(screen_width() - 20, 1, "# Time = %i", timePlayed);
 }
 
 // Setup game.
@@ -131,7 +137,13 @@ void setup(void) {
 	// Clear the screen ready for the game to start
 	clear_screen();
 
+	lives = 10;
+	score = 0;
+	timePlayed = 0;
+
+	// Draw the border and show the screen
 	draw_border();
+	show_screen();
 }
 
 // Play one turn of game.
