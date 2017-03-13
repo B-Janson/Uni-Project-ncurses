@@ -161,7 +161,7 @@ void setup(void) {
 
 	show_screen();
 
-	sprite_turn_to(diamond, 0, 0.15);
+	sprite_turn_to(diamond, 0, 0.16);
 	int degrees = rand() % 16;
 	sprite_turn(diamond, (degrees - 8)*9);
 
