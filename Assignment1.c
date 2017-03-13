@@ -15,10 +15,13 @@
 #define SHIP_HEIGHT (3)
 #define DIAMOND_WIDTH (5)
 #define DIAMOND_HEIGHT (5)
+#define MISSILE_WIDTH (1)
+#define MISSILE_HEIGHT (1)
 
 // Game state.
 bool game_over = false; /* Set this to true when game is over */
 bool update_screen = true; /* Set to false to prevent screen update. */
+bool missile_in_flight = false; /* Determines if missile already been shot */
 
 char * ship_image =
 /**/	"   |   "
@@ -32,19 +35,28 @@ char * diamond_image =
 /**/	" CCC "
 /**/	"  C  ";
 
+char * missile_image =
+/**/	"!";
+
 char * msg_image =
 /**/	"Goodbye and thank-you for playing ZombieDash Jr."
 /**/	"            Press any key to exit...            ";
 
 char border_character = '#';
+//char missile = '!';
 
 int lives;
 int score;
 int timePlayed;
+int timeStart;
+int minutes;
+int seconds;
 
 sprite_id ship;
 
 sprite_id diamond;
+
+sprite_id missile;
 
 void draw_rectangle(int x, int y, int width, int height, char character) {
 	int left = x;
@@ -52,16 +64,20 @@ void draw_rectangle(int x, int y, int width, int height, char character) {
 	int top = y;
 	int bottom = y + height - 1;
 
+	// Top border
 	draw_line(left, top, right, top, character);
+	// Right border
 	draw_line(right, top, right, bottom, character);
+	// Bottom border
 	draw_line(right, bottom, left, bottom, character);
+	// Left border
 	draw_line(left, bottom, left, top, character);
 }
 
 void draw_help_dialog(void) {
 	
 	// Dimensions as demonstrated in example video
-	int width = 64;
+	int width = 50;
 	int height = 14;
 
 	// Get box around centre of the screen to accomodate
@@ -113,7 +129,9 @@ void draw_help_dialog(void) {
 }
 
 void draw_border(void) {
+	// Draw border around outside
 	draw_rectangle(0, 0, screen_width(), screen_height(), border_character);
+	// Draw line break between info and game window
 	draw_line(0, 2, screen_width() - 1, 2, border_character);
 
 	int middle = screen_width()/2;
@@ -121,7 +139,7 @@ void draw_border(void) {
 
 	draw_formatted(middle, 1, "# Score = %i", score);
 
-	draw_formatted(screen_width() - 20, 1, "# Time = %i", timePlayed);
+	draw_formatted(screen_width() - 20, 1, "# Time = %i:%02d", minutes, seconds);
 }
 
 // Setup game.
@@ -136,9 +154,11 @@ void setup(void) {
 	// Clear the screen ready for the game to start
 	clear_screen();
 
+	// Initalise global variables
 	lives = 10;
 	score = 0;
 	timePlayed = 0;
+	timeStart = get_current_time();
 
 	// Draw the border and show the screen
 	draw_border();
@@ -154,6 +174,7 @@ void setup(void) {
 	int seed = time(NULL);
 	srand(seed);
 
+	// Place diamond in random position at top of screen
 	int diamondX = rand() % (screen_width() - DIAMOND_WIDTH - 2);
 	diamond = sprite_create(diamondX, 3, DIAMOND_WIDTH, DIAMOND_HEIGHT, diamond_image);
 
@@ -161,7 +182,9 @@ void setup(void) {
 
 	show_screen();
 
-	sprite_turn_to(diamond, 0, 0.16);
+	// Give it a downward velocity
+	sprite_turn_to(diamond, 0, 0.15);
+	// Choose an angle between 0-16 then move that range to (-8, 8)
 	int degrees = rand() % 16;
 	sprite_turn(diamond, (degrees - 8)*9);
 
@@ -169,26 +192,55 @@ void setup(void) {
 
 }
 
+void shootMissile(int x, int y) {
+	missile = sprite_create(x, y, MISSILE_WIDTH, MISSILE_HEIGHT, missile_image);
+	sprite_draw(missile);
+
+	show_screen();
+
+	//update_screen = false;
+
+	sprite_turn_to(missile, 0, -0.2);
+	show_screen();
+}
+
 // Play one turn of game.
 void process(void) {
 
+	// Get the next key pressed
 	int key = get_char();
 
+	// If they press q then quit the game
 	if(key == 'q') {
 		game_over = true;
 		return;
 	}
 
+	// Work out how long the game has gone for and format
+	timePlayed = get_current_time() - timeStart;
+	minutes = timePlayed / 60;
+	seconds = timePlayed % 60;
+
+	// Get ship's current position
 	int ship_x = round(sprite_x(ship));
+	int ship_y = round(sprite_y(ship));
 
+	// If wouldn't be out of bounds and left arrow pressed
 	if(key == 260 && ship_x > 1) {
-		sprite_move(ship, -1, 0);
+		sprite_move(ship, -1, 0); // move left
 	}
 
+	// If wouldn't be out of bound and right arrow pressed
 	if(key == 261 && ship_x + SHIP_WIDTH < screen_width() - 1) {
-		sprite_move(ship, +1, 0);
+		sprite_move(ship, +1, 0); // move right
 	}
 
+	if((key == ' ' || key == 'z' || key == 'c' || key == 'x') && !missile_in_flight) {
+		shootMissile(ship_x + SHIP_WIDTH / 2, ship_y - 1);
+		missile_in_flight = true;
+	}
+
+	// Moving the diamond and keeping in bounds
 	sprite_step(diamond);
 
 	int diamond_x = round(sprite_x(diamond));
@@ -208,8 +260,9 @@ void process(void) {
 	if(diamond_dx != sprite_dx(diamond) || diamond_dy != sprite_dy(diamond)) {
 		sprite_back(diamond);
 		sprite_turn_to(diamond, diamond_dx, diamond_dy);
-	}
+	}	
 
+	// Remove everything for re-draw
 	clear_screen();
 
 	draw_border();
@@ -217,6 +270,19 @@ void process(void) {
 	sprite_draw(ship);
 
 	sprite_draw(diamond);
+
+	if(missile_in_flight) {
+		int  missile_x = round(sprite_x(missile));
+		int  missile_y = round(sprite_y(missile));
+		if(missile_y == 2) {
+			sprite_destroy(missile);
+			missile_in_flight = false;
+		} else {
+			sprite_step(missile);
+			sprite_draw(missile);
+		}
+
+	}
 
 	
 }
