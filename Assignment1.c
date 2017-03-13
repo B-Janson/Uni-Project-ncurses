@@ -161,7 +161,9 @@ void setup(void) {
 
 	show_screen();
 
-	sprite_turn_to(diamond, 0, 0.2);
+	sprite_turn_to(diamond, 0, 0.15);
+	int degrees = rand() % 16;
+	sprite_turn(diamond, (degrees - 8)*9);
 
 	show_screen();
 
@@ -172,6 +174,11 @@ void process(void) {
 
 	int key = get_char();
 
+	if(key == 'q') {
+		game_over = true;
+		return;
+	}
+
 	int ship_x = round(sprite_x(ship));
 
 	if(key == 260 && ship_x > 1) {
@@ -180,6 +187,27 @@ void process(void) {
 
 	if(key == 261 && ship_x + SHIP_WIDTH < screen_width() - 1) {
 		sprite_move(ship, +1, 0);
+	}
+
+	sprite_step(diamond);
+
+	int diamond_x = round(sprite_x(diamond));
+	int diamond_y = round(sprite_y(diamond));
+
+	double diamond_dx = sprite_dx(diamond);
+	double diamond_dy = sprite_dy(diamond);
+
+	if(diamond_x == 0 || diamond_x + DIAMOND_WIDTH == screen_width() - 1) {
+		diamond_dx = -diamond_dx;
+	}
+
+	if(diamond_y == 2 || diamond_y + DIAMOND_HEIGHT == screen_height()) {
+		diamond_dy = -diamond_dy;
+	}
+
+	if(diamond_dx != sprite_dx(diamond) || diamond_dy != sprite_dy(diamond)) {
+		sprite_back(diamond);
+		sprite_turn_to(diamond, diamond_dx, diamond_dy);
 	}
 
 	clear_screen();
