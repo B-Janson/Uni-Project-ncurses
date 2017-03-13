@@ -11,24 +11,23 @@
 // Configuration
 #define DELAY (10) /* Millisecond delay between game updates */
 
-#define HERO_WIDTH (5)
-#define HERO_HEIGHT (5)
-#define ZOMBIE_WIDTH (5)
-#define ZOMBIE_HEIGHT (5)
+#define SHIP_WIDTH (7)
+#define SHIP_HEIGHT (3)
+#define DIAMOND_WIDTH (5)
+#define DIAMOND_HEIGHT (5)
 
 // Game state.
 bool game_over = false; /* Set this to true when game is over */
 bool update_screen = true; /* Set to false to prevent screen update. */
 
 char * ship_image =
-/**/	"   |    "
+/**/	"   |   "
 /**/	"  /o\\  "
 /**/	"|/___\\|";
 
 char * diamond_image =
 /**/	"  C  "
 /**/	" CCC "
-/**/	"CCCCC"
 /**/	"CCCCC"
 /**/	" CCC "
 /**/	"  C  ";
@@ -144,10 +143,53 @@ void setup(void) {
 	// Draw the border and show the screen
 	draw_border();
 	show_screen();
+
+	// Setup game bits
+	ship = sprite_create((screen_width() - SHIP_WIDTH) / 2, screen_height() - 1 - SHIP_HEIGHT, SHIP_WIDTH, SHIP_HEIGHT, ship_image);
+
+	sprite_draw(ship);
+
+	show_screen();
+
+	int seed = time(NULL);
+	srand(seed);
+
+	int diamondX = rand() % (screen_width() - DIAMOND_WIDTH - 2);
+	diamond = sprite_create(diamondX, 3, DIAMOND_WIDTH, DIAMOND_HEIGHT, diamond_image);
+
+	sprite_draw(diamond);
+
+	show_screen();
+
+	sprite_turn_to(diamond, 0, 0.2);
+
+	show_screen();
+
 }
 
 // Play one turn of game.
 void process(void) {
+
+	int key = get_char();
+
+	int ship_x = round(sprite_x(ship));
+
+	if(key == 260 && ship_x > 1) {
+		sprite_move(ship, -1, 0);
+	}
+
+	if(key == 261 && ship_x + SHIP_WIDTH < screen_width() - 1) {
+		sprite_move(ship, +1, 0);
+	}
+
+	clear_screen();
+
+	draw_border();
+
+	sprite_draw(ship);
+
+	sprite_draw(diamond);
+
 	
 }
 
