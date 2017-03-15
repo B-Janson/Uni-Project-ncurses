@@ -170,6 +170,25 @@ void draw_border(void) {
 	draw_formatted(screen_width() - 20, 1, "# Time = %i:%02d", minutes, seconds);
 }
 
+void draw_diamond(void) {
+	int seed = time(NULL);
+	srand(seed);
+
+	// Place diamond in random position at top of screen
+	int diamondX = rand() % (screen_width() - DIAMOND_WIDTH - 2);
+	diamond = sprite_create(diamondX, 3, DIAMOND_WIDTH, DIAMOND_HEIGHT, diamond_image);
+
+	sprite_draw(diamond);
+
+	show_screen();
+
+	// Give it a downward velocity
+	sprite_turn_to(diamond, 0, 0.15);
+	// Choose an angle between 0-16 then move that range to (-8, 8)
+	int degrees = rand() % 90;
+	sprite_turn(diamond, (degrees - 45));
+}
+
 // Setup game.
 void setup(void) {
 	// Display the intial help dialog
@@ -195,22 +214,7 @@ void setup(void) {
 
 	show_screen();
 
-	int seed = time(NULL);
-	srand(seed);
-
-	// Place diamond in random position at top of screen
-	int diamondX = rand() % (screen_width() - DIAMOND_WIDTH - 2);
-	diamond = sprite_create(diamondX, 3, DIAMOND_WIDTH, DIAMOND_HEIGHT, diamond_image);
-
-	sprite_draw(diamond);
-
-	show_screen();
-
-	// Give it a downward velocity
-	sprite_turn_to(diamond, 0, 0.15);
-	// Choose an angle between 0-16 then move that range to (-8, 8)
-	int degrees = rand() % 90;
-	sprite_turn(diamond, (degrees - 45));
+	draw_diamond();
 
 	show_screen();
 
@@ -228,6 +232,22 @@ void shootMissile(int x, int y) {
 
 // TODO
 bool collided(sprite_id firstSprite, sprite_id secondSprite) {
+	// First sprite passed as input
+	int first_left		= round(sprite_x(firstSprite));
+	int first_right 	= first_left + sprite_width(firstSprite) - 1;
+	int first_top 		= round(sprite_y(firstSprite));
+	int first_bottom	= first_top + sprite_height(firstSprite) - 1;
+
+	// Second sprite passed as input
+	int second_left		= round(sprite_x(secondSprite));
+	int second_right 	= second_left + sprite_width(secondSprite) - 1;
+	int second_top 		= round(sprite_y(secondSprite));
+	int second_bottom	= second_top + sprite_height(secondSprite) - 1;
+
+	if(!(first_right < second_left || first_left > second_right || 
+			first_bottom < second_top || first_top > second_bottom)) {
+		return true;
+	}
 	return false;
 }
 
@@ -241,6 +261,7 @@ void pauseAndDisplayHelp(void) {
 
 // TODO
 bool quitGame(void) {
+	while(get_char() >= 0) {}
 	clear_screen();
 	int message_width = strlen(msg_image) / 2;
 	sprite_id msg = sprite_create((screen_width() - message_width) / 2, (screen_height() - 2) / 2, message_width, 2, msg_image);
@@ -369,6 +390,15 @@ void process(void) {
 
 	if(missile_in_flight) {
 		moveMissile();
+		if(collided(missile, diamond)) {
+			score++;
+
+		}
+	}
+
+	if(collided(ship, diamond)) {
+		lives--;
+		draw_diamond();
 	}
 
 	// Remove everything for re-draw
@@ -387,7 +417,7 @@ void process(void) {
 
 // Clean up game
 void cleanup(void) {
-	// STATEMENTS
+	// Reset all variables to initial values
 	game_over = false;
 	update_screen = true;
 	missile_in_flight = false;
