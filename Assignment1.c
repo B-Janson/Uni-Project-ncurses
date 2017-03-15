@@ -79,6 +79,8 @@ void moveMissile(void);
 void process(void);
 void cleanup(void);
 
+// Method used to draw rectangle from pos top left of (x,y) of width and height 
+// and drawn with character specified
 void draw_rectangle(int x, int y, int width, int height, char character) {
 	int left = x;
 	int right = x + width - 1;
@@ -189,6 +191,13 @@ void draw_diamond(void) {
 	sprite_turn(diamond, (degrees - 45));
 }
 
+void draw_ship(void) {
+	// Setup game bits
+	ship = sprite_create((screen_width() - SHIP_WIDTH) / 2, screen_height() - 1 - SHIP_HEIGHT, SHIP_WIDTH, SHIP_HEIGHT, ship_image);
+
+	sprite_draw(ship);
+}
+
 // Setup game.
 void setup(void) {
 	// Display the intial help dialog
@@ -207,10 +216,7 @@ void setup(void) {
 	draw_border();
 	show_screen();
 
-	// Setup game bits
-	ship = sprite_create((screen_width() - SHIP_WIDTH) / 2, screen_height() - 1 - SHIP_HEIGHT, SHIP_WIDTH, SHIP_HEIGHT, ship_image);
-
-	sprite_draw(ship);
+	draw_ship();
 
 	show_screen();
 
@@ -353,9 +359,15 @@ void moveMissile() {
 		sprite_destroy(missile);
 		missile_in_flight = false;
 		score++;
+		sprite_destroy(diamond);
+		draw_diamond();
 	} else {
 		sprite_step(missile);
 	}
+}
+
+bool missileInFlight(void) {
+	return missile_in_flight;
 }
 
 // Play one turn of game.
@@ -388,17 +400,23 @@ void process(void) {
 	// Move the diamond sprite and check collisions
 	moveDiamond();	
 
-	if(missile_in_flight) {
+	// If there is currently a missile in flight
+	if(missileInFlight()) {
 		moveMissile();
-		if(collided(missile, diamond)) {
-			score++;
-
-		}
 	}
 
 	if(collided(ship, diamond)) {
 		lives--;
-		draw_diamond();
+		if(lives <= 0) {
+			if(quitGame()) {
+				game_over = true;
+			} else {
+				resetGame();
+			}
+		} else {
+			draw_diamond();
+			draw_ship();
+		}
 	}
 
 	// Remove everything for re-draw
@@ -410,7 +428,7 @@ void process(void) {
 
 	sprite_draw(diamond);
 
-	if(missile_in_flight) {
+	if(missileInFlight()) {
 		sprite_draw(missile);
 	}
 }
