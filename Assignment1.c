@@ -44,8 +44,8 @@ char * missile_image =
 /**/	"!";
 
 char * msg_image =
-/**/	"Goodbye and thank-you for playing ZombieDash Jr."
-/**/	"            Press any key to exit...            ";
+/**/	"    Game Over. Would you like to play again?    "
+/**/	"                    Press Y/N                  ";
 
 char border_character = '#';
 //char missile = '!';
@@ -71,6 +71,11 @@ void shootMissile(int x, int y);
 bool collided(sprite_id firstSprite, sprite_id secondSprite);
 void pauseAndDisplayHelp(void);
 bool quitGame(void);
+void resetGame(void);
+void calculateTimeElapsed(void);
+void moveShip(int key);
+void moveDiamond(void);
+void moveMissile(void);
 void process(void);
 void cleanup(void);
 
@@ -217,8 +222,6 @@ void shootMissile(int x, int y) {
 
 	show_screen();
 
-	//update_screen = false;
-
 	sprite_turn_to(missile, 0, -0.2);
 	show_screen();
 }
@@ -238,7 +241,26 @@ void pauseAndDisplayHelp(void) {
 
 // TODO
 bool quitGame(void) {
-	return false;
+	clear_screen();
+	int message_width = strlen(msg_image) / 2;
+	sprite_id msg = sprite_create((screen_width() - message_width) / 2, (screen_height() - 2) / 2, message_width, 2, msg_image);
+	sprite_draw(msg);
+	draw_formatted((screen_width() - 20) / 2, screen_height() - 10, "You scored %d points", score);
+	show_screen();
+	//game_over = true;
+	int key;
+
+	do {
+		key = wait_char();
+		if(key == 'Y' || key == 'y') {
+			return false;
+		}
+
+		if(key == 'N' || key == 'n') {
+			return true;
+		}
+	} while(key != 'Y' || key != 'y' || key != 'N' || key != 'n');
+ 	return false;
 }
 
 void resetGame(void) {
@@ -254,32 +276,7 @@ void calculateTimeElapsed(void) {
 	seconds = timePlayed % 60;
 }
 
-// Play one turn of game.
-void process(void) {
-
-	// Get the next key pressed
-	int key = get_char();
-
-	// If they press q then ask if quit game 
-	if(key == 'q') {
-		if(quitGame()) {
-			game_over = true;
-		} else {
-			resetGame();
-		}
-		return;
-	}
-
-	// If they press h then pause and display help information
-	if(key == 'h') {
-		pauseAndDisplayHelp();
-		return;
-	}
-
-	calculateTimeElapsed();
-	// Work out how long the game has gone for and format
-	
-
+void moveShip(int key) {
 	// Get ship's current position
 	int ship_x = round(sprite_x(ship));
 	int ship_y = round(sprite_y(ship));
@@ -298,7 +295,9 @@ void process(void) {
 		shootMissile(ship_x + SHIP_WIDTH / 2, ship_y - 1);
 		missile_in_flight = true;
 	}
+}
 
+void moveDiamond(void) {
 	// Moving the diamond and keeping in bounds
 	sprite_step(diamond);
 
@@ -320,21 +319,56 @@ void process(void) {
 		sprite_back(diamond);
 		sprite_turn_to(diamond, diamond_dx, diamond_dy);
 	}	
+}
+
+void moveMissile() {
+	int  missile_x = round(sprite_x(missile));
+	int  missile_y = round(sprite_y(missile));
+
+	if(missile_y == 2) {
+		sprite_destroy(missile);
+		missile_in_flight = false;
+	} else if (collided(missile, diamond)) {
+		sprite_destroy(missile);
+		missile_in_flight = false;
+		score++;
+	} else {
+		sprite_step(missile);
+	}
+}
+
+// Play one turn of game.
+void process(void) {
+	// Get the next key pressed
+	int key = get_char();
+
+	// If they press q then ask if quit game 
+	if(key == 'q') {
+		if(quitGame()) {
+			game_over = true;
+		} else {
+			resetGame();
+		}
+		return;
+	}
+
+	// If they press h then pause and display help information
+	if(key == 'h') {
+		pauseAndDisplayHelp();
+		return;
+	}
+
+	// Work out how long the game has gone for and format
+	calculateTimeElapsed();
+
+	// Move the ship left and right depending on input
+	moveShip(key);
+
+	// Move the diamond sprite and check collisions
+	moveDiamond();	
 
 	if(missile_in_flight) {
-		int  missile_x = round(sprite_x(missile));
-		int  missile_y = round(sprite_y(missile));
-
-		if(missile_y == 2) {
-			sprite_destroy(missile);
-			missile_in_flight = false;
-		} else if (collided(missile, diamond)) {
-			sprite_destroy(missile);
-			missile_in_flight = false;
-			score++;
-		} else {
-			sprite_step(missile);
-		}
+		moveMissile();
 	}
 
 	// Remove everything for re-draw
@@ -349,27 +383,6 @@ void process(void) {
 	if(missile_in_flight) {
 		sprite_draw(missile);
 	}
-
-	// if(missile_in_flight) {
-	// 	int  missile_x = round(sprite_x(missile));
-	// 	int  missile_y = round(sprite_y(missile));
-
-	// 	if(missile_y == 2) {
-	// 		sprite_destroy(missile);
-	// 		missile_in_flight = false;
-	// 	} else if (missile_y == diamond_y) {
-	// 		sprite_back(missile);
-	// 		sprite_destroy(missile);
-	// 		missile_in_flight = false;
-	// 		score++;
-	// 	} else {
-	// 		sprite_step(missile);
-	// 		sprite_draw(missile);
-	// 	}
-
-	// }
-
-	
 }
 
 // Clean up game
