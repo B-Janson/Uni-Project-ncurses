@@ -371,7 +371,7 @@ void moveDiamond(void) {
 }
 
 void moveMissile() {
-	int  missile_x = round(sprite_x(missile));
+	// int  missile_x = round(sprite_x(missile));
 	int  missile_y = round(sprite_y(missile));
 
 	if(missile_y == 2) {
