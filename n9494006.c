@@ -119,23 +119,38 @@ void draw_help_dialog(void) {
 	int y = (screen_height() - height) / 2;
 
 	const int numStrings = 12;
-	const int maxLength = 40;
+	// const int maxLength = 40;
+
+	char * infoMessages[numStrings];
+
+	infoMessages[0] = "CAB202 Assignment 1";
+	infoMessages[1] = "The Diamonds Of Doom";
+	infoMessages[2] = "Brandon Janson";
+	infoMessages[3] = "n9494006";
+	infoMessages[4] = "";
+	infoMessages[5] = "Controls";
+	infoMessages[6] = "q\t: quit";
+	infoMessages[7] = "h\t: help";
+	infoMessages[8] = "   Arrow keys\t: move left/right";
+	infoMessages[9] = "Space, z, x, c : shoot bullet    ";
+	infoMessages[10] = "";
+	infoMessages[11] = "Press a key to play...";
 
 	// Initalise string array to loop through easier
-	char strings[numStrings][maxLength] = {
-			"CAB202 Assignment 1",
-			"The Diamonds Of Doom",
-			"Brandon Janson",
-			"n9494006",
-			"",
-			"Controls",
-			"q\t: quit",
-			"h\t: help",
-			"   Arrow keys\t: move left/right",
-			"Space, z, x, c : shoot bullet    ",
-			"",
-			"Press a key to play..."
-		};
+	// char strings[numStrings][maxLength] = {
+	// 		"CAB202 Assignment 1",
+	// 		"The Diamonds Of Doom",
+	// 		"Brandon Janson",
+	// 		"n9494006",
+	// 		"",
+	// 		"Controls",
+	// 		"q\t: quit",
+	// 		"h\t: help",
+	// 		"   Arrow keys\t: move left/right",
+	// 		"Space, z, x, c : shoot bullet    ",
+	// 		"",
+	// 		"Press a key to play..."
+	// 	};
 	
 	// Draw the outline of the help dialog
 	draw_rectangle(x, y, width, height, border_character);
@@ -145,8 +160,11 @@ void draw_help_dialog(void) {
 
 	// Loop through the first four strings and display them on screen
 	for(int i = 0; i < numStrings; i++) {
-		int length = strlen(strings[i]);
-		draw_formatted((screen_width() - length) / 2, y + i, strings[i]);
+		//int length = strlen(strings[i]);
+		//draw_formatted((screen_width() - length) / 2, y + i, strings[i]);
+
+		int length = strlen(infoMessages[i]);
+		draw_formatted((screen_width() - length) / 2, y + i, infoMessages[i]);
 	}
 
 	// Increment by 4 so that y is now equal to the next line break
