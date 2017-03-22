@@ -84,7 +84,8 @@ void calculateTimeElapsed(void);
 void moveShip(int key);
 void moveDiamond(void);
 void moveMissile(void);
-bool missileInFlight(void);
+//bool missileInFlight(void);
+bool canShootMissile(void);
 void process(void);
 void cleanup(void);
 
@@ -351,11 +352,16 @@ void moveShip(int key) {
 		sprite_move(ship, +1, 0); // move right
 	}
 
-	if((key == ' ' || key == 'z' || key == 'c' || key == 'x') && !missileInFlight()) {
-		//shootMissile(ship_x + SHIP_WIDTH / 2, ship_y - 1);
-		//missile_in_flight = true;
-
+	if((key == ' ' || key == 'x') && canShootMissile()) {
 		shootMissiles(ship_x + SHIP_WIDTH / 2, ship_y - 1);
+	}
+
+	if(key == 'z' && canShootMissile()) {
+		shootMissiles(ship_x, ship_y + 1);
+	}
+
+	if(key == 'c' && canShootMissile()) {
+		shootMissiles(ship_x + SHIP_WIDTH - 1, ship_y + 1);
 	}
 }
 
@@ -410,14 +416,17 @@ void moveMissiles() {
 			int  missile_y = round(sprite_y(missiles[i]));
 
 			if(missile_y == 2) {
-
+				sprite_back(missiles[i]);
+				sprite_draw(missiles[i]);
 				sprite_destroy(missiles[i]);
 				missiles[i] = NULL;
+				missileCount--;
 
 			} else if (collided(missiles[i], diamond)) {
 
 				sprite_destroy(missiles[i]);
 				missiles[i] = NULL;
+				missileCount--;
 				score++;
 				sprite_destroy(diamond);
 				draw_diamond();
@@ -436,8 +445,12 @@ void moveMissiles() {
 	
 }
 
-bool missileInFlight(void) {
-	return missile_in_flight;
+// bool missileInFlight(void) {
+// 	return missile_in_flight;
+// }
+
+bool canShootMissile(void) {
+	return missileCount < MAX_MISSILES;
 }
 
 bool missilesInFlight(void) {
