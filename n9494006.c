@@ -264,7 +264,7 @@ void setup(void) {
 // }
 
 void shootMissiles(int x, int y) {
-	double missileSpeed = -0.2 + diamondsLeft*0.015;
+	double missileSpeed = -0.2 + diamondsLeft*0.0185;
 	for (int i = 0; i < MAX_MISSILES; i++) {
 		if(missiles[i] == NULL) {
 			missiles[i] = sprite_create(x, y, MISSILE_WIDTH, MISSILE_HEIGHT, missile_image);
@@ -348,14 +348,19 @@ void moveShip(int key) {
 	int ship_x = round(sprite_x(ship));
 	int ship_y = round(sprite_y(ship));
 
+	int shipSpeed = 1;
+	if(screen_width() > 50) {
+		shipSpeed *= 2;
+	}
+
 	// If wouldn't be out of bounds and left arrow pressed
 	if(key == 260 && ship_x > 1) {
-		sprite_move(ship, -1, 0); // move left
+		sprite_move(ship, -shipSpeed, 0); // move left
 	}
 
 	// If wouldn't be out of bound and right arrow pressed
 	if(key == 261 && ship_x + SHIP_WIDTH < screen_width() - 1) {
-		sprite_move(ship, +1, 0); // move right
+		sprite_move(ship, +shipSpeed, 0); // move right
 	}
 
 	if((key == ' ' || key == 'x') && canShootMissile()) {
@@ -500,7 +505,21 @@ void moveMissiles() {
 					score++;
 
 					if(diamondsLeft == 0) {
+						clear_screen();
+						char congratulations[60] = "Congratulations, you cleared all diamonds! +10 points";
+						draw_formatted((screen_width() - strlen(congratulations) ) / 2, screen_height()/2, "%s", congratulations);
+						score += 10;
+						draw_border();
+						show_screen();
+						timer_pause(1000);
+						for(int i = 3; i > 0; i--) {
+							clear_screen();
+							draw_formatted(screen_width() / 2, screen_height()/2, "%d", i);
+							show_screen();
+							timer_pause(1000);
+						}
 						draw_diamonds();
+						draw_ship();
 					}
 
 
