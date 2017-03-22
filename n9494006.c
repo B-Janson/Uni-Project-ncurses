@@ -23,7 +23,7 @@
 #define MISSILE_WIDTH (1)
 #define MISSILE_HEIGHT (1)
 
-// #define MAX_MISSILES (100)
+#define MAX_MISSILES (100)
 // #define MAX_DIAMONDS (10)
 
 // Game state.
@@ -59,7 +59,7 @@ int timePlayed;
 int timeStart;
 int minutes;
 int seconds;
-// int missileCount;
+int missileCount;
 
 sprite_id ship;
 
@@ -69,7 +69,7 @@ sprite_id missile;
 
 // sprite_id diamonds[MAX_DIAMONDS];
 
-// sprite_id missiles[MAX_MISSILES];
+sprite_id missiles[MAX_MISSILES];
 
 void draw_rectangle(int x, int y, int width, int height, char character);
 void draw_help_dialog(void);
@@ -206,19 +206,17 @@ void draw_diamond(void) {
 	int diamondX = rand() % (screen_width() - DIAMOND_WIDTH - 2);
 	diamond = sprite_create(diamondX, 3, DIAMOND_WIDTH, DIAMOND_HEIGHT, diamond_image);
 
-	sprite_draw(diamond);
-
-	show_screen();
-
 	// Give it a downward velocity
 	sprite_turn_to(diamond, 0, 0.15);
 	// Choose an angle between 0-16 then move that range to (-8, 8)
 	int degrees = rand() % 90;
 	sprite_turn(diamond, (degrees - 45));
+
+	sprite_draw(diamond);
 }
 
 void draw_ship(void) {
-	// Setup game bits
+
 	ship = sprite_create((screen_width() - SHIP_WIDTH) / 2, screen_height() - 1 - SHIP_HEIGHT, SHIP_WIDTH, SHIP_HEIGHT, ship_image);
 
 	sprite_draw(ship);
@@ -240,11 +238,8 @@ void setup(void) {
 
 	// Draw the border and show the screen
 	draw_border();
-	show_screen();
 
 	draw_ship();
-
-	show_screen();
 
 	draw_diamond();
 
@@ -262,18 +257,18 @@ void shootMissile(int x, int y) {
 	show_screen();
 }
 
-/*void shootMissiles(int x, int y) {
+void shootMissiles(int x, int y) {
 	for (int i = 0; i < MAX_MISSILES; i++) {
 		if(missiles[i] == NULL) {
 			missiles[i] = sprite_create(x, y, MISSILE_WIDTH, MISSILE_HEIGHT, missile_image);
 			sprite_draw(missiles[i]);
+			missileCount++;
 
 			sprite_turn_to(missiles[i], 0, -0.2);
-
-			show_screen();
+			break;
 		}
 	}
-}*/
+}
 
 bool collided(sprite_id firstSprite, sprite_id secondSprite) {
 	// First sprite passed as input
@@ -357,10 +352,10 @@ void moveShip(int key) {
 	}
 
 	if((key == ' ' || key == 'z' || key == 'c' || key == 'x') && !missileInFlight()) {
-		shootMissile(ship_x + SHIP_WIDTH / 2, ship_y - 1);
-		missile_in_flight = true;
-
 		//shootMissile(ship_x + SHIP_WIDTH / 2, ship_y - 1);
+		//missile_in_flight = true;
+
+		shootMissiles(ship_x + SHIP_WIDTH / 2, ship_y - 1);
 	}
 }
 
@@ -406,8 +401,47 @@ void moveMissile() {
 	}
 }
 
+void moveMissiles() {
+	// int  missile_x = round(sprite_x(missile));
+
+	for (int i = 0; i < MAX_MISSILES; i++) {
+
+		if(missiles[i] != NULL) {
+			int  missile_y = round(sprite_y(missiles[i]));
+
+			if(missile_y == 2) {
+
+				sprite_destroy(missiles[i]);
+				missiles[i] = NULL;
+
+			} else if (collided(missiles[i], diamond)) {
+
+				sprite_destroy(missiles[i]);
+				missiles[i] = NULL;
+				score++;
+				sprite_destroy(diamond);
+				draw_diamond();
+
+			} else {
+				sprite_step(missiles[i]);
+			}
+		}
+
+		
+	}
+
+
+	
+
+	
+}
+
 bool missileInFlight(void) {
 	return missile_in_flight;
+}
+
+bool missilesInFlight(void) {
+	return missileCount > 0;
 }
 
 // Play one turn of game.
@@ -441,8 +475,8 @@ void process(void) {
 	moveDiamond();	
 
 	// If there is currently a missile in flight
-	if(missileInFlight()) {
-		moveMissile();
+	if(missilesInFlight()) {
+		moveMissiles();
 	}
 
 	if(collided(ship, diamond)) {
@@ -468,11 +502,13 @@ void process(void) {
 
 	sprite_draw(diamond);
 
-	if(missileInFlight()) {
-		sprite_draw(missile);
-		// for(int i = 0; i < MAX_MISSILES; i++) {
-		// 	sprite_draw(missiles[i]);
-		// }
+	if(missilesInFlight()) {
+		//sprite_draw(missile);
+		for(int i = 0; i < MAX_MISSILES; i++) {
+			if(missiles[i] != NULL) {
+				sprite_draw(missiles[i]);
+			}
+		}
 	}
 }
 
