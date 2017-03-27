@@ -205,7 +205,7 @@ void draw_diamonds(void) {
 
 	for (int j = 0; j < MAX_DIAMONDS; j++) {
 		// Place diamond in random position at top of screen
-		int diamondX = rand() % (screen_width() - DIAMOND_WIDTH - 2);
+		int diamondX = rand() % (screen_width() - DIAMOND_WIDTH - 2) + 1;
 		diamonds[j] = sprite_create(diamondX, 3, DIAMOND_WIDTH, DIAMOND_HEIGHT, diamond_image);
 
 		// Give it a downward velocity
@@ -518,6 +518,7 @@ void moveMissiles() {
 							show_screen();
 							timer_pause(1000);
 						}
+						while(get_char() >= 0) {}
 						draw_diamonds();
 						draw_ship();
 					}
