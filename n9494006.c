@@ -74,14 +74,14 @@ int diamondsLeft;
 
 sprite_id ship;
 
-//sprite_id diamond;
-
-// For posterity
-//sprite_id missile;
-
 sprite_id diamonds[MAX_DIAMONDS + MAX_DIAMONDS * 2 + MAX_DIAMONDS * 4 + 5];
 
 sprite_id missiles[MAX_MISSILES];
+
+
+// 		For posterity
+// sprite_id missile;
+// sprite_id diamond;
 
 void draw_rectangle(int x, int y, int width, int height, char character);
 void draw_help_dialog(void);
@@ -102,6 +102,7 @@ bool canShootMissile(void);
 void process(void);
 void cleanup(void);
 void resetDiamonds(void);
+void resetMissiles(void);
 
 // Method used to draw rectangle from pos top left of (x,y) of width and height 
 // and drawn with character specified
@@ -237,6 +238,14 @@ void draw_ship(void) {
 	sprite_draw(ship);
 }
 
+void resetMissiles(void) {
+	missileCount = 0;
+	for(int i = 0; i < MAX_MISSILES; i++) {
+		sprite_destroy(missiles[i]);
+		missiles[i] = NULL;
+	}
+}
+
 // Setup game.
 void setup(void) {
 	// Display the intial help dialog
@@ -251,6 +260,7 @@ void setup(void) {
 	timePlayed = 0;
 	timeStart = get_current_time();
 	diamondsLeft = MAX_DIAMONDS;
+	resetDiamonds();
 
 	// Draw the border and show the screen
 	draw_border();
@@ -343,6 +353,7 @@ bool quitGame(void) {
 
 void resetGame(void) {
 	clear_screen();
+	resetMissiles();
 	cleanup();
 	setup();
 	show_screen();
@@ -521,6 +532,7 @@ void displayRestartMessage() {
 	}
 	while(get_char() >= 0) {}
 	draw_diamonds();
+	resetMissiles();
 	draw_ship();
 	int elapsedTime = get_current_time() - tempTime;
 	timeStart += elapsedTime;
@@ -707,6 +719,7 @@ void process(void) {
 					}
 				} else {
 					resetDiamonds();
+					resetMissiles();
 					draw_diamonds();
 					draw_ship();
 				}
