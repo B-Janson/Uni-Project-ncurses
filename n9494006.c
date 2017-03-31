@@ -285,7 +285,7 @@
 	// }
 
 	void shootMissiles(int x, int y) {
-		double missileSpeed = -0.05; //+ diamondsLeft*0.0185;
+		double missileSpeed = -0.22; //+ diamondsLeft*0.0185;
 		for (int i = 0; i < MAX_MISSILES; i++) {
 			if(missiles[i] == NULL) {
 				missiles[i] = sprite_create(x, y, MISSILE_WIDTH, MISSILE_HEIGHT, missile_image);
@@ -592,62 +592,206 @@
 
 
 	void moveMissiles() {
-		for (int i = 0; i < MAX_MISSILES; i++) {
-			for(int j = 0; j < TOTAL_DIAMONDS; j++) {
 
-				if(missiles[i] != NULL && diamonds[j] != NULL) {
-					int  missile_y = round(sprite_y(missiles[i]));
 
-					if(missile_y == 2) {
-						sprite_back(missiles[i]);
-						sprite_draw(missiles[i]);
-						sprite_destroy(missiles[i]);
-						missiles[i] = NULL;
-						missileCount--;
+		for(int i = 0; i < MAX_MISSILES; i++) {
+			if(missiles[i] != NULL) {
+				sprite_step(missiles[i]);
 
-					} else if (collided(missiles[i], diamonds[j])) {
+				int missile_y = round(sprite_y(missiles[i]));
 
-						int typeDiamond = 0; // 0 for large, 1 for medium, 2 for small
-						if(j >= DIAMOND_OFFSET_SMALL) {
-							typeDiamond = 2;
-						} else if(j >= DIAMOND_OFFSET_MEDIUM) {
-							typeDiamond = 1;
+				if(missile_y == 2) {
+					sprite_back(missiles[i]);
+					sprite_draw(missiles[i]);
+					sprite_destroy(missiles[i]);
+					missiles[i] = NULL;
+					missileCount--;
+					continue;
+				}
+
+				for(int j = 0; j < TOTAL_DIAMONDS; j++) {
+					if(missiles[i] != NULL && diamonds[j] != NULL) {
+						if(collided(missiles[i], diamonds[j])) {
+
+							int typeDiamond = 0; // 0 for large, 1 for medium, 2 for small
+							if (j >= DIAMOND_OFFSET_SMALL) {
+								typeDiamond = 2;
+							} else if (j >= DIAMOND_OFFSET_MEDIUM) {
+								typeDiamond = 1;
+							}
+
+							sprite_back(missiles[i]);
+
+							sprite_destroy(missiles[i]);
+							missiles[i] = NULL;
+							missileCount--;
+
+							int diamond_x = round(sprite_x(diamonds[j]));
+							int diamond_y = round(sprite_y(diamonds[j]));
+
+							double diamond_dx = sprite_dx(diamonds[j]);
+							double diamond_dy = sprite_dy(diamonds[j]);
+
+							sprite_destroy(diamonds[j]);
+							diamonds[j] = NULL;
+							diamondsLeft--;
+
+							score++;
+
+							if(typeDiamond < 2) {
+								spawnAdditionalDiamonds(typeDiamond, j, diamond_x, diamond_y, diamond_dx, diamond_dy);
+									diamondsLeft += 2;
+							}
+
+							if(diamondsLeft <= 0) {
+								resetDiamonds();
+								displayRestartMessage();
+							}
 						}
-
-						sprite_destroy(missiles[i]);
-						missiles[i] = NULL;
-						missileCount--;
-
-						int diamond_x = round(sprite_x(diamonds[j]));
-						int diamond_y = round(sprite_y(diamonds[j]));
-
-						double diamond_dx = sprite_dx(diamonds[j]);
-						double diamond_dy = sprite_dy(diamonds[j]);
-
-						sprite_destroy(diamonds[j]);
-						diamonds[j] = NULL;
-						diamondsLeft--;
-
-						score++;
-
-						if(typeDiamond < 2) {
-							spawnAdditionalDiamonds(typeDiamond, j, diamond_x, diamond_y, diamond_dx, diamond_dy);
-							diamondsLeft += 2;
-						}
-
-						if(diamondsLeft <= 0) {
-							resetDiamonds();
-							displayRestartMessage();
-
-						}
-
-
-					} else {
-						sprite_step(missiles[i]);
 					}
 				}
-			}	
+
+
+
+			}
 		}
+
+
+
+
+
+
+		// for (int i = 0; i < MAX_MISSILES; i++) {
+
+		// 	bool exists = (missiles[i] != NULL);
+
+		// 	if(exists) {
+		// 		int  missile_y = round(sprite_y(missiles[i]));
+
+		// 		if(missile_y == 2) {
+
+		// 			sprite_back(missiles[i]);
+		// 			sprite_draw(missiles[i]);
+		// 			sprite_destroy(missiles[i]);
+		// 			missiles[i] = NULL;
+		// 			missileCount--;
+
+		// 		} else {
+
+		// 			for(int j = 0; j < TOTAL_DIAMONDS; j++) {
+
+		// 				if(diamonds[j] != NULL) {
+
+		// 					if (collided(missiles[i], diamonds[j])) {
+
+		// 						int typeDiamond = 0; // 0 for large, 1 for medium, 2 for small
+		// 						if(j >= DIAMOND_OFFSET_SMALL) {
+		// 							typeDiamond = 2;
+		// 						} else if(j >= DIAMOND_OFFSET_MEDIUM) {
+		// 							typeDiamond = 1;
+		// 						}
+
+		// 						sprite_destroy(missiles[i]);
+		// 						missiles[i] = NULL;
+		// 						missileCount--;
+
+		// 						int diamond_x = round(sprite_x(diamonds[j]));
+		// 						int diamond_y = round(sprite_y(diamonds[j]));
+
+		// 						double diamond_dx = sprite_dx(diamonds[j]);
+		// 						double diamond_dy = sprite_dy(diamonds[j]);
+
+		// 						sprite_destroy(diamonds[j]);
+		// 						diamonds[j] = NULL;
+		// 						diamondsLeft--;
+
+		// 						score++;
+
+		// 						if(typeDiamond < 2) {
+		// 							spawnAdditionalDiamonds(typeDiamond, j, diamond_x, diamond_y, diamond_dx, diamond_dy);
+		// 							diamondsLeft += 2;
+		// 						}
+
+		// 						if(diamondsLeft <= 0) {
+		// 							resetDiamonds();
+		// 							displayRestartMessage();
+
+		// 						}
+
+		// 					}
+
+		// 				}
+
+		// 			}
+
+		// 		}
+
+		// 		exists = missiles[i] != NULL;
+
+		// 		if(exists){
+		// 			sprite_step(missiles[i]);
+		// 		}
+
+				
+
+		// 	}
+
+
+			// for(int j = 0; j < TOTAL_DIAMONDS; j++) {
+
+			// 	if(missiles[i] != NULL && diamonds[j] != NULL) {
+			// 		int  missile_y = round(sprite_y(missiles[i]));
+
+			// 		if(missile_y == 2) {
+			// 			sprite_back(missiles[i]);
+			// 			sprite_draw(missiles[i]);
+			// 			sprite_destroy(missiles[i]);
+			// 			missiles[i] = NULL;
+			// 			missileCount--;
+
+			// 		} else if (collided(missiles[i], diamonds[j])) {
+
+			// 			int typeDiamond = 0; // 0 for large, 1 for medium, 2 for small
+			// 			if(j >= DIAMOND_OFFSET_SMALL) {
+			// 				typeDiamond = 2;
+			// 			} else if(j >= DIAMOND_OFFSET_MEDIUM) {
+			// 				typeDiamond = 1;
+			// 			}
+
+			// 			sprite_destroy(missiles[i]);
+			// 			missiles[i] = NULL;
+			// 			missileCount--;
+
+			// 			int diamond_x = round(sprite_x(diamonds[j]));
+			// 			int diamond_y = round(sprite_y(diamonds[j]));
+
+			// 			double diamond_dx = sprite_dx(diamonds[j]);
+			// 			double diamond_dy = sprite_dy(diamonds[j]);
+
+			// 			sprite_destroy(diamonds[j]);
+			// 			diamonds[j] = NULL;
+			// 			diamondsLeft--;
+
+			// 			score++;
+
+			// 			if(typeDiamond < 2) {
+			// 				spawnAdditionalDiamonds(typeDiamond, j, diamond_x, diamond_y, diamond_dx, diamond_dy);
+			// 				diamondsLeft += 2;
+			// 			}
+
+			// 			if(diamondsLeft <= 0) {
+			// 				resetDiamonds();
+			// 				displayRestartMessage();
+
+			// 			}
+
+
+			// 		} else {
+			// 			sprite_step(missiles[i]);
+			// 		}
+			// 	}
+			// }	
+		// }
 	}
 
 	// bool missileInFlight(void) {
