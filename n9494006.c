@@ -89,6 +89,7 @@
 	void setup(void);
 	void shootMissile(int x, int y);
 	bool collided(sprite_id firstSprite, sprite_id secondSprite);
+	bool collidedPixel(sprite_id firstSprite, sprite_id secondSprite);
 	void pauseAndDisplayHelp(void);
 	bool quitGame(void);
 	void resetGame(void);
@@ -311,11 +312,83 @@
 		int second_top 		= round(sprite_y(secondSprite));
 		int second_bottom	= second_top + sprite_height(secondSprite) - 1;
 
-		if(!(first_right < second_left || first_left > second_right || 
-				first_bottom < second_top || first_top > second_bottom)) {
-			return true;
+		if(first_right < second_left) {
+			return false;
 		}
+
+		if(first_left > second_right) {
+			return false;
+		}
+
+		if(first_bottom < second_top) {
+			return false;
+		}
+
+		if(first_top > second_bottom) {
+			return false;
+		}
+
+
+
+		return collidedPixel(firstSprite, secondSprite);
+	}
+
+	bool collidedPixel(sprite_id firstSprite, sprite_id secondSprite) {
+		// First sprite passed as input
+		int first_width 	= sprite_width(firstSprite);
+		int first_height 	= sprite_height(firstSprite);
+		int first_left		= round(sprite_x(firstSprite));
+		//int first_right 	= first_left + sprite_width(firstSprite) - 1;
+		int first_top 		= round(sprite_y(firstSprite));
+		//int first_bottom	= first_top + sprite_height(firstSprite) - 1;
+		char * first_image 	= firstSprite->bitmap;
+
+		// Second sprite passed as input
+		int second_width 	= sprite_width(secondSprite);
+		int second_height	= sprite_height(secondSprite);
+		int second_left		= round(sprite_x(secondSprite));
+		//int second_right 	= second_left + sprite_width(secondSprite) - 1;
+		int second_top 		= round(sprite_y(secondSprite));
+		// int second_bottom	= second_top + sprite_height(secondSprite) - 1;
+		char * second_image = secondSprite->bitmap;
+		
+		for(int first = 0; first < first_width * first_height; first++) {
+			if(first_image[first] != ' ') {
+				int firstCurrentX = first_left + (first % first_width);
+				int firstCurrentY = first_top + (first / first_width);
+
+				for(int second = 0; second < second_width * second_height; second++) {
+					if(second_image[second] != ' ' ) {
+						int secondCurrentX = second_left + (second % second_width);
+						int secondCurrentY = second_top + (second / second_width);
+
+						if(firstCurrentX == secondCurrentX && firstCurrentY == secondCurrentY) {
+							return true;
+						}
+					}
+				}
+			}
+		}
+
+		// int xOffset = second_left - first_left;
+		// int yOffset = first_top - second_top;
+		// if(yOffset > 0) {
+		// 	yOffset = first_top - second_bottom;
+		// }
+
+		// int index = yOffset * sprite_width(firstSprite) + xOffset;
+
+		// draw_formatted(50, 50, "The char at index %d is %c", index, first_image[index]);
+		// show_screen();
+		// update_screen = false;
+
+		// if(first_image[index] != ' ') {
+		// 	return true;
+		// }
+
 		return false;
+
+		
 	}
 
 	void pauseAndDisplayHelp(void) {
@@ -611,7 +684,7 @@
 
 				for(int j = 0; j < TOTAL_DIAMONDS; j++) {
 					if(missiles[i] != NULL && diamonds[j] != NULL) {
-						if(collided(missiles[i], diamonds[j])) {
+						if(collided(diamonds[j], missiles[i])) {
 
 							int typeDiamond = 0; // 0 for large, 1 for medium, 2 for small
 							if (j >= DIAMOND_OFFSET_SMALL) {
@@ -655,6 +728,7 @@
 
 			}
 		}
+	}
 
 
 
@@ -792,7 +866,7 @@
 			// 	}
 			// }	
 		// }
-	}
+
 
 	// bool missileInFlight(void) {
 	// 	return missile_in_flight;
@@ -884,15 +958,7 @@
 			}
 		}
 
-
-		// for(int i = 0; i < MAX_DIAMONDS; i++) {
-		// 	if(diamonds[i] != NULL) {
-		// 		sprite_draw(diamonds[i]);
-		// 	}
-		// }
-
 		if(missilesInFlight()) {
-			//sprite_draw(missile);
 			for(int i = 0; i < MAX_MISSILES; i++) {
 				if(missiles[i] != NULL) {
 					sprite_draw(missiles[i]);
