@@ -1,2 +1,2 @@
 # glowing-couscous
-Diamond Shooting Game written in C for Univerty Project.
+Diamond Shooting Game written in C for University Project.
